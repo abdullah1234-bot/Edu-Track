@@ -19,6 +19,7 @@ public class ScholarshipController {
     @Autowired
     private ScholarshipService scholarshipService;
 
+
     // Endpoint for students to apply for a scholarship
     @PostMapping("/apply")
     @PreAuthorize("hasRole('STUDENT')")
