@@ -1,15 +1,22 @@
 package com.fifth_semester.project.dtos.request;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
 public class AttendanceData {
 
+    @NotNull(message = "Student ID cannot be null")
+    @Min(value = 1, message = "Student ID must be a positive number")
     private Long studentId;
-    private boolean isPresent;
+
+    @NotNull(message = "Attendance status cannot be null")
+    private boolean status;
 
     public AttendanceData() {}
 
-    public AttendanceData(Long studentId, boolean isPresent) {
+    public AttendanceData(Long studentId, boolean status) {
         this.studentId = studentId;
-        this.isPresent = isPresent;
+        this.status = status;
     }
 
     public Long getStudentId() {
@@ -20,11 +27,13 @@ public class AttendanceData {
         this.studentId = studentId;
     }
 
-    public boolean isPresent() {
-        return isPresent;
+    // Correct Getter Following JavaBean Naming Conventions
+    public boolean getStatus() {
+        return status;
     }
 
-    public void setPresent(boolean present) {
-        isPresent = present;
+    // Setter remains unchanged
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

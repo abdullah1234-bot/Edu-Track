@@ -1,9 +1,6 @@
 package com.fifth_semester.project.controllers;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fifth_semester.project.dtos.request.*;
@@ -65,6 +62,15 @@ public class AuthController {
   private int jwtExpirationMs;
 
   // Shared login endpoint for all roles
+
+//  @GetMapping("/abc")
+//  public String abc(){
+//    String newp = "12345678";
+//    User user = userRepository.findByEmail("basitfast681@gmail.com").orElseThrow(()->new RuntimeException("no user"));
+//    user.setPassword(encoder.encode(newp));
+//    userRepository.save(user);
+//    return "abc";
+//  }
   @PostMapping("/login")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
     Authentication authentication = authenticationManager.authenticate(
@@ -224,18 +230,27 @@ public class AuthController {
     student.setRoles(roles);
     String temporaryPassword = encoder.encode("tempPassword");
     // Save parent information in the Student entity to be used during approval
-    Parent parent = new Parent(
-            signUpRequest.getParentUsername(),
-            signUpRequest.getParentEmail(),
-            temporaryPassword,  // Password will be generated later
-            signUpRequest.getParentContactNumber(),
-            signUpRequest.getParentAddress(),
-            signUpRequest.getParentOccupation()
-    );
 
-    parentRepository.save(parent);  // Save the parent first
-    student.setParent(parent);      // Then associate with student
+    Parent parent;
+    Optional<Parent> parentOpt = parentRepository.findByEmail(signUpRequest.getParentEmail());
+    if (parentOpt.isPresent()) {
+      parent = parentOpt.get();
+    }
+    else {
+      parent = new Parent(
+              signUpRequest.getParentUsername(),
+              signUpRequest.getParentEmail(),
+              temporaryPassword,  // Password will be generated later
+              signUpRequest.getParentContactNumber(),
+              signUpRequest.getParentAddress(),
+              signUpRequest.getParentOccupation()
+      );
 
+
+      parentRepository.save(parent);  // Save the parent first
+            // Then associate with student
+    }
+    student.setParent(parent);
     // Save the student
     userRepository.save(student);
 

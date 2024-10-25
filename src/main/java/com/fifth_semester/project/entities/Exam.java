@@ -1,10 +1,14 @@
 package com.fifth_semester.project.entities;
 
-import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
-@Table(name = "exams")
+@Table(name = "exams",uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"exam_type", "course_id"})
+})
 public class Exam {
 
     @Id
@@ -24,8 +28,10 @@ public class Exam {
 
     private int duration;  // Duration in minutes
 
-    @ManyToOne
+    // Many Exams belong to one Course
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
+    @JsonBackReference
     private Course course;
 
     public Exam() {}
@@ -39,15 +45,14 @@ public class Exam {
         this.course = course;
     }
 
-    // Getters and setters
+    // Getters and Setters
+
+    // ID
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    // Exam ID
     public String getExamId() {
         return examId;
     }
@@ -56,6 +61,7 @@ public class Exam {
         this.examId = examId;
     }
 
+    // Exam Type
     public ExamType getExamType() {
         return examType;
     }
@@ -64,6 +70,7 @@ public class Exam {
         this.examType = examType;
     }
 
+    // Exam Date
     public LocalDate getExamDate() {
         return examDate;
     }
@@ -72,6 +79,7 @@ public class Exam {
         this.examDate = examDate;
     }
 
+    // Exam Location
     public String getExamLocation() {
         return examLocation;
     }
@@ -80,6 +88,7 @@ public class Exam {
         this.examLocation = examLocation;
     }
 
+    // Duration
     public int getDuration() {
         return duration;
     }
@@ -88,6 +97,7 @@ public class Exam {
         this.duration = duration;
     }
 
+    // Course
     public Course getCourse() {
         return course;
     }
@@ -95,4 +105,5 @@ public class Exam {
     public void setCourse(Course course) {
         this.course = course;
     }
+
 }

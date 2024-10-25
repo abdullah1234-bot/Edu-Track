@@ -2,11 +2,16 @@ package com.fifth_semester.project.controllers;
 
 import com.fifth_semester.project.entities.Scholarship;
 import com.fifth_semester.project.entities.ScholarshipStatus;
+import com.fifth_semester.project.entities.Student;
+import com.fifth_semester.project.repositories.StudentRepository;
+import com.fifth_semester.project.security.services.UserDetailsImpl;
 import com.fifth_semester.project.services.ScholarshipService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,19 +19,24 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/scholarships")
 @Tag(name = "Scholarship APIs")
-public class ScholarshipController {
+public class
+ScholarshipController {
 
     @Autowired
     private ScholarshipService scholarshipService;
+    @Autowired
+    private StudentRepository studentRepository;
 
 
     // Endpoint for students to apply for a scholarship
     @PostMapping("/apply")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<Scholarship> applyForScholarship(@RequestParam Long studentId,
-                                                           @RequestParam String scholarshipName,
+    public ResponseEntity<String> applyForScholarship(@RequestParam String scholarshipName,
                                                            @RequestParam Double amount) {
-        Scholarship scholarship = scholarshipService.applyForScholarship(studentId, scholarshipName, amount);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Student student = studentRepository.findByEmail(userDetails.getEmail()).orElseThrow(() -> new RuntimeException("Student not found"));
+        String scholarship = scholarshipService.applyForScholarship(student, scholarshipName, amount);
         return ResponseEntity.ok(scholarship);
     }
 
@@ -40,10 +50,13 @@ public class ScholarshipController {
     }
 
     // Endpoint to get all scholarships for a specific student
-    @GetMapping("/student/{studentId}")
+    @GetMapping("/student")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<Scholarship>> getScholarshipsForStudent(@PathVariable Long studentId) {
-        List<Scholarship> scholarships = scholarshipService.getScholarshipsForStudent(studentId);
+    public ResponseEntity<List<Scholarship>> getScholarshipsForStudent() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Student student = studentRepository.findByEmail(userDetails.getEmail()).orElseThrow(() -> new RuntimeException("Student not found"));
+        List<Scholarship> scholarships = scholarshipService.getScholarshipsForStudent(student);
         return ResponseEntity.ok(scholarships);
     }
 

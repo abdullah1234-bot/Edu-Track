@@ -38,7 +38,7 @@ public class LibraryService {
 
     // Search for books by title, author, or ISBN
     public List<Book> searchBooks(String query) {
-        return bookRepository.findByTitleContainingOrAuthorContainingOrIsbnContaining(query, query, query);
+        return bookRepository.findByTitleContainingOrAuthorContaining(query, query);
     }
 
     // Check availability of a book
@@ -65,6 +65,11 @@ public class LibraryService {
         // Mark book as reserved
         book.setAvailabilityStatus(BookStatus.RESERVED);
         bookRepository.save(book);
+        BorrowingRecord borrowingRecord = new BorrowingRecord();
+        borrowingRecord.setBook(book);
+        borrowingRecord.setStudent(student);
+        borrowingRecord.setBorrowDate(LocalDate.now());
+        borrowingRecordRepository.save(borrowingRecord);
 
         return "Book reserved successfully.";
     }
@@ -121,9 +126,11 @@ public class LibraryService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // Get all overdue records for the student
+        LocalDate oneWeekAgo = LocalDate.now().minusWeeks(1);
+
+        // Fetch borrowing records where books have not been returned (returnDate is null) and are overdue
         List<BorrowingRecord> overdueRecords = borrowingRecordRepository
-                .findByStudentAndReturnDateBeforeAndReturnDateIsNull(student, LocalDate.now());
+                .findByStudentAndBorrowDateBeforeAndReturnDateIsNull(student, oneWeekAgo);
 
         if (overdueRecords.isEmpty()) {
             return "No overdue books found for the student.";
@@ -131,11 +138,12 @@ public class LibraryService {
 
         // Loop through all overdue records and apply penalties
         for (BorrowingRecord record : overdueRecords) {
-            LocalDate dueDate = record.getReturnDate();
+            LocalDate borrowedDate = record.
+                    getBorrowDate();
             LocalDate today = LocalDate.now();
 
-            // Calculate the number of overdue days
-            long overdueDays = ChronoUnit.DAYS.between(dueDate, today);
+            // Calculate the number of overdue days (from 7th day onwards)
+            long overdueDays = ChronoUnit.DAYS.between(borrowedDate.plusWeeks(1), today);
 
             if (overdueDays > 0) {
                 double penalty = overdueDays * DAILY_PENALTY; // Calculate penalty
@@ -145,6 +153,8 @@ public class LibraryService {
                 feeRepository.save(fee);
             }
         }
+
+
 
         return "Overdue penalties applied.";
     }
@@ -193,7 +203,7 @@ public class LibraryService {
     }
 
     // Schedule the task to run daily at 00:01
-    @Scheduled(cron = "1 0 0 * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void sendDailyBookReturnReminders() {
         notifyStudentsForDueBookReturns();
         List<Student> allStudents = studentRepository.findAll();

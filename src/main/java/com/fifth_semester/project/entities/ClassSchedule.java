@@ -1,7 +1,7 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
@@ -13,14 +13,12 @@ public class ClassSchedule {
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
+    @JsonManagedReference
     private Course course;  // The course for which the schedule is created
 
     @ManyToOne
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;  // The teacher assigned for the class
-
-    @Column(nullable = false)
-    private LocalDate classDate;  // The date of the class
 
     @Column(nullable = false)
     private LocalTime startTime;  // Start time of the class
@@ -34,22 +32,25 @@ public class ClassSchedule {
     @Column(nullable = false)
     private int semesterNumber;
 
+    @Column(nullable = false)
+    private String day;  // The day of the week
+
     @OneToOne
     @JoinColumn(name = "section_id")
+    @JsonManagedReference
     private Section section;
-
 
     public ClassSchedule() {}
 
-    public ClassSchedule(Course course, Section section, Teacher teacher, LocalDate classDate, LocalTime startTime, LocalTime endTime, String classroom, int semesterNumber) {
+    public ClassSchedule(Course course, Section section, Teacher teacher, LocalTime startTime, LocalTime endTime, String classroom, int semesterNumber, String day) {
         this.course = course;
         this.teacher = teacher;
         this.section = section;
-        this.classDate = classDate;
         this.startTime = startTime;
         this.endTime = endTime;
         this.classroom = classroom;
         this.semesterNumber = semesterNumber;
+        this.day = day;
     }
 
     // Getters and Setters
@@ -74,16 +75,8 @@ public class ClassSchedule {
         return teacher;
     }
 
-    public void setTeacher(Teacher teacher) {
+    public void setInstructor(Teacher teacher) {
         this.teacher = teacher;
-    }
-
-    public LocalDate getClassDate() {
-        return classDate;
-    }
-
-    public void setClassDate(LocalDate classDate) {
-        this.classDate = classDate;
     }
 
     public LocalTime getStartTime() {
@@ -106,7 +99,7 @@ public class ClassSchedule {
         return classroom;
     }
 
-    public void setClassroom(String classroom) {
+    public void setRoom(String classroom) {
         this.classroom = classroom;
     }
 
@@ -120,5 +113,17 @@ public class ClassSchedule {
 
     public int getSemesterNumber() {
         return semesterNumber;
+    }
+
+    public void setSemester(int semesterNumber) {
+        this.semesterNumber = semesterNumber;
+    }
+
+    public String getDay() {
+        return day;
+    }
+
+    public void setDay(String day) {
+        this.day = day;
     }
 }

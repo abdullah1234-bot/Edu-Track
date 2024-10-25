@@ -1,5 +1,7 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -13,6 +15,7 @@ public class Attendance {
 
     @ManyToOne
     @JoinColumn(name = "enrollment_id", nullable = false)
+    @JsonBackReference
     private Enrollment enrollment;
 
     private LocalDate attendanceDate;

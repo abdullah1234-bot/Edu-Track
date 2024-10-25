@@ -1,9 +1,12 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import javax.validation.constraints.Size;
+
 @Entity
-@Table(name = "library_books")
+@Table(name = "books")
 public class Book {
 
     @Id
@@ -11,13 +14,18 @@ public class Book {
     private Long id;
 
     @Column(nullable = false)
+    @Size(min = 1, max = 255)
     private String title;
 
     @Column(nullable = false)
+    @Size(min = 1, max = 255)
     private String author;
 
     @Column(unique = true, nullable = false)
     private String isbn;
+
+    @Column(nullable = false)
+    private String publisher;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -25,10 +33,11 @@ public class Book {
 
     public Book() {}
 
-    public Book(String title, String author, String isbn, BookStatus availabilityStatus) {
+    public Book(String title, String author, String isbn,String publisher, BookStatus availabilityStatus) {
         this.title = title;
         this.author = author;
         this.isbn = isbn;
+        this.publisher = publisher;
         this.availabilityStatus = availabilityStatus;
     }
 
@@ -71,5 +80,14 @@ public class Book {
 
     public void setAvailabilityStatus(BookStatus availabilityStatus) {
         this.availabilityStatus = availabilityStatus;
+    }
+
+
+    public String getPublisher() {
+        return publisher;
+    }
+
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
     }
 }

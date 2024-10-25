@@ -1,14 +1,18 @@
 package com.fifth_semester.project.controllers;
 
+import com.fifth_semester.project.dtos.request.UpdateExamRequest;
+import com.fifth_semester.project.dtos.response.StudentExamsDTO;
 import com.fifth_semester.project.entities.Exam;
 import com.fifth_semester.project.entities.ExamType;
 import com.fifth_semester.project.services.ExamService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,7 +28,7 @@ public class ExamController {
     @GetMapping("/student/{studentId}/upcoming")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> getUpcomingExams(@PathVariable Long studentId) {
-        List<Exam> exams = examService.getUpcomingExamsForStudent(studentId);
+        List<StudentExamsDTO> exams = examService.getUpcomingExamsForStudent(studentId);
         return ResponseEntity.ok(exams);
     }
 
@@ -41,13 +45,20 @@ public class ExamController {
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<?> scheduleExam(@RequestParam String examId,
                                           @RequestParam ExamType examType,
-                                          @RequestParam LocalDate examDate,
+                                          @RequestParam @DateTimeFormat(pattern = "YYYY-MM-DD") LocalDate examDate,
                                           @RequestParam String examLocation,
                                           @RequestParam int duration,
                                           @RequestParam Long courseId) {
         String result = examService.scheduleExam(examId, examType, examDate, examLocation, duration, courseId);
         return ResponseEntity.ok(result);
     }
-
+    @PutMapping("/update/{examId}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<?> updateExam(
+            @PathVariable Long examId,
+            @Valid @RequestBody UpdateExamRequest updateExamRequest) {
+        String result = examService.updateExam(examId, updateExamRequest);
+        return ResponseEntity.ok(result);
+    }
 
 }

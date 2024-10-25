@@ -1,5 +1,6 @@
 package com.fifth_semester.project.repositories;
 
+import com.fifth_semester.project.dtos.response.StudentDTO;
 import com.fifth_semester.project.entities.Course;
 import com.fifth_semester.project.entities.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,5 +18,9 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query("SELECT e.course FROM Enrollment e WHERE e.student.id = :studentId")
     List<Course> findCoursesByStudentId(@Param("studentId") Long studentId);
+
+    @Query("SELECT new com.fifth_semester.project.dtos.response.StudentDTO(s.id, s.email, s.studentId, s.username) " +
+            "FROM Student s WHERE s.parent.id = :parentId")
+    List<StudentDTO> findStudentDTOsByParentId(Long parentId);
 
 }

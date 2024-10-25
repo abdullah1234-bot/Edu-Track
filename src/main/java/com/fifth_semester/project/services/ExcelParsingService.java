@@ -1,58 +1,82 @@
 package com.fifth_semester.project.services;
-
-import com.fifth_semester.project.dtos.response.TimetableRow;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalTime;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-@Service
 public class ExcelParsingService {
 
-    public List<TimetableRow> parseTimetableExcel(MultipartFile file) throws IOException {
-        List<TimetableRow> timetableRows = new ArrayList<>();
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Usage: java TimetableParser <file_path>");
+            return;
+        }
 
-        try (InputStream inputStream = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(inputStream)) {
+        String filePath = args[0];
+        parseTimetable(filePath);
+    }
 
-            Sheet sheet = workbook.getSheetAt(0);  // Assuming we're reading from the first sheet
-            DataFormatter dataFormatter = new DataFormatter();
+    public static void parseTimetable(String filePath) {
+        List<String> validDays = Arrays.asList("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY");
 
-            // Iterate through each row in the sheet
-            for (int i = 4; i < sheet.getPhysicalNumberOfRows(); i++) {  // Start from 4th row, skipping headers
-                Row row = sheet.getRow(i);
+        try (FileInputStream fis = new FileInputStream(new File(filePath));
+             Workbook workbook = new XSSFWorkbook(fis)) {
 
-                if (row == null) continue;
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                String sheetName = sheet.getSheetName().trim().toUpperCase();
 
-                String venue = dataFormatter.formatCellValue(row.getCell(0));  // Venue
-                for (int j = 1; j < row.getPhysicalNumberOfCells(); j++) {  // Iterate over time slots
-                    String courseInfo = dataFormatter.formatCellValue(row.getCell(j));
-                    if (!courseInfo.isEmpty()) {
-                        TimetableRow timetableRow = new TimetableRow();
+                if (validDays.contains(sheetName)) {
+                    for (int rowIndex = 3; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                        Row row = sheet.getRow(rowIndex);
 
-                        // Extract course code, section, instructor from courseInfo
-                        String[] courseDetails = courseInfo.split("\n");
-                        timetableRow.setCourseCode(courseDetails[0].split(" ")[0]);
-                        timetableRow.setSection(courseDetails[0].split(" ")[1]);
-                        timetableRow.setInstructor(courseDetails[1]);
+                        if (row != null) {
+                            String course = getCellValue(row.getCell(0));
+                            String instructor = getCellValue(row.getCell(1));
+                            String startTime = getCellValue(row.getCell(2));
+                            String endTime = getCellValue(row.getCell(3));
+                            String room = getCellValue(row.getCell(4));
+                            String section = getCellValue(row.getCell(5));
+                            String semester = getCellValue(row.getCell(6));
 
-                        // Time slot and venue from the excel sheet
-                        timetableRow.setTimeSlot(dataFormatter.formatCellValue(sheet.getRow(2).getCell(j)));
-                        timetableRow.setVenue(venue);
-
-                        // Add to list
-                        timetableRows.add(timetableRow);
+                            // Print the result in the specified format
+                            System.out.printf("%s,%s,%s,%s,%s,%s,%s,%s%n",
+                                    course, instructor, sheetName, startTime, endTime, room, section, semester);
+                        }
                     }
                 }
             }
-        }
 
-        return timetableRows;
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static String getCellValue(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getLocalDateTimeCellValue().toLocalTime().toString(); // For time values
+                } else {
+                    return String.valueOf((int) cell.getNumericCellValue()); // Assuming numbers are integers
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return cell.getCellFormula();
+            case BLANK:
+                return "";
+            default:
+                return "";
+        }
     }
 }

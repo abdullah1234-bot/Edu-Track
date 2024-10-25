@@ -1,5 +1,6 @@
 package com.fifth_semester.project.controllers;
 
+import com.fifth_semester.project.dtos.response.TeacherDTO;
 import com.fifth_semester.project.dtos.response.TeacherPerformanceDTO;
 import com.fifth_semester.project.entities.Teacher;
 import com.fifth_semester.project.entities.Course;
@@ -81,21 +82,25 @@ public class TeacherController {
     }
 
     // Assign teacher to a course
-    @PostMapping("/assigncourse/{teacherId}/course/{courseId}")
-    public ResponseEntity<MessageResponse> assignTeacherToCourse(@PathVariable Long teacherId, @PathVariable Long courseId) {
-        String responseMessage = teacherService.assignTeacherToCourse(teacherId, courseId);
+    @PostMapping("/assigncourse/{teacherId}/course/{courseId}/section/{sectionId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> assignTeacherToCourse(@PathVariable Long teacherId, @PathVariable Long courseId, @PathVariable Long sectionId) {
+        String responseMessage = teacherService.assignTeacherToCourseAndSection(teacherId, courseId, sectionId);
         return ResponseEntity.ok(new MessageResponse(responseMessage));
     }
 
     // Get all teachers
     @GetMapping("/getinfoofall")
-    public ResponseEntity<List<Teacher>> getAllTeachers() {
-        List<Teacher> teachers = teacherService.getAllTeachers();
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TeacherDTO>> getAllTeachers() {
+        List<TeacherDTO> teachers = teacherService.getAllTeachers();  // Returns DTOs
         return ResponseEntity.ok(teachers);
     }
 
+
     // Get teacher by ID
     @GetMapping("/info/{teacherId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public ResponseEntity<Optional<Teacher>> getTeacherById(@PathVariable Long teacherId) {
         Optional<Teacher> teacher = teacherService.getTeacherById(teacherId);
         return ResponseEntity.ok(teacher);
@@ -103,6 +108,7 @@ public class TeacherController {
 
     // Delete a teacher by ID
     @DeleteMapping("/delete/{teacherId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> deleteTeacher(@PathVariable Long teacherId) {
         teacherService.deleteTeacher(teacherId);
         return ResponseEntity.ok(new MessageResponse("Teacher deleted successfully"));
@@ -110,6 +116,7 @@ public class TeacherController {
 
     // Get courses assigned to a teacher
     @GetMapping("/{teacherId}/getassignedcourses")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<List<Course>> getCoursesByTeacher(@PathVariable Long teacherId) {
         List<Course> courses = teacherService.getCoursesByTeacher(teacherId);
         return ResponseEntity.ok(courses);
@@ -117,6 +124,7 @@ public class TeacherController {
 
     // Get teacher performance
     @GetMapping("/{teacherId}/performance")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<TeacherPerformanceDTO> getTeacherPerformance(@PathVariable Long teacherId) {
         TeacherPerformanceDTO performanceDTO = teacherService.getTeacherPerformance(teacherId);
         return ResponseEntity.ok(performanceDTO);

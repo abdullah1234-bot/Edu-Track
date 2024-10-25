@@ -24,7 +24,7 @@ public class StudentProfileService {
     private final String profilePictureStoragePath = "src/main/resources/static/profiles/";
 
     // Update the student's username, password, profile picture, emergency contact, and address
-    public String updateStudentProfile(Long studentId, String username, String address, String emergencyContact, MultipartFile profilePicture) throws IOException {
+    public String updateStudentProfile(Long studentId, String username, String address, String emergencyContact) throws IOException {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -42,10 +42,10 @@ public class StudentProfileService {
             student.setEmergencyContact(emergencyContact);
         }
         // Update profile picture
-        if (profilePicture != null && !profilePicture.isEmpty()) {
-            String profilePicturePath = saveProfilePicture(profilePicture);
-            student.setProfilePicture(profilePicturePath);
-        }
+//        if (profilePicture != null && !profilePicture.isEmpty()) {
+//            String profilePicturePath = saveProfilePicture(profilePicture);
+//            student.setProfilePicture(profilePicturePath);
+//        }
 
         studentRepository.save(student);
         return "Student profile updated successfully!";
@@ -72,11 +72,11 @@ public class StudentProfileService {
     }
 
     // Helper method to save profile picture
-    private String saveProfilePicture(MultipartFile profilePicture) throws IOException {
-        String fileName = profilePicture.getOriginalFilename();
-        Path filePath = Paths.get(profilePictureStoragePath, fileName);
-        Files.createDirectories(filePath.getParent());  // Ensure directories exist
-        Files.write(filePath, profilePicture.getBytes());
-        return "/profiles/" + fileName;  // Return relative path to be stored in the database
-    }
+//    private String saveProfilePicture(MultipartFile profilePicture) throws IOException {
+//        String fileName = profilePicture.getOriginalFilename();
+//        Path filePath = Paths.get(profilePictureStoragePath, fileName);
+//        Files.createDirectories(filePath.getParent());  // Ensure directories exist
+//        Files.write(filePath, profilePicture.getBytes());
+//        return "/profiles/" + fileName;  // Return relative path to be stored in the database
+//    }
 }

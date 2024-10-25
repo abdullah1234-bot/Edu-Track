@@ -6,13 +6,24 @@ import java.time.LocalTime;
 public class TimetableRow {
     private String courseCode;  // e.g., DAA
     private String section;     // e.g., BCS-5C
+    private int semester;
     private String instructor;  // e.g., Anaum Hamid
     private String timeSlot;    // e.g., 08:00-8:55
     private String venue;       // e.g., E-1 Academic Block I
-    private LocalDate classDate;
-    private LocalTime startTime;
-    private LocalTime endTime;
-
+    private LocalTime startTime; //e.g., 08:00
+    private LocalTime endTime; //e.g., 08:55
+    private String day; //e.g., monday
+    public TimetableRow(String courseCode, String section, String instructor, int semester, String timeSlot, String venue, LocalTime startTime, LocalTime endTime, String day) {
+        this.courseCode = courseCode;
+        this.section = section;
+        this.instructor = instructor;
+        this.semester = semester;
+        this.timeSlot = timeSlot;
+        this.venue = venue;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.day = day;
+    }
     // Getters and setters
     public String getCourseCode() {
         return courseCode;
@@ -54,13 +65,6 @@ public class TimetableRow {
         this.venue = venue;
     }
 
-    public LocalDate getClassDate() {
-        return classDate;
-    }
-
-    public void setClassDate(LocalDate classDate) {
-        this.classDate = classDate;
-    }
 
     public LocalTime getStartTime() {
         return startTime;
@@ -76,5 +80,21 @@ public class TimetableRow {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public String getDay() {
+        return day;
+    }
+
+    public void setDay(String day) {
+        this.day = day;
+    }
+
+    public int getSemester() {
+        return semester;
+    }
+
+    public void setSemester(int semester) {
+        this.semester = semester;
     }
 }

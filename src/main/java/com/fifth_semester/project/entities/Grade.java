@@ -1,6 +1,9 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "grades")
@@ -10,60 +13,57 @@ public class Grade {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
-
-    @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    // Many Grades belong to one Enrollment
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "enrollment_id", nullable = false)
+    @JsonBackReference
+    private Enrollment enrollment;
 
     @Enumerated(EnumType.STRING)
     private GradeValue value;  // Grade value (A, B, C, D, E, F)
-
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private ExamType examType;
     private int marks;  // Marks out of 100
 
     private String feedback;  // Optional feedback from the teacher
 
     public Grade() {}
 
-    public Grade(Student student, Course course, int marks, String feedback) {
-        this.student = student;
-        this.course = course;
+    public Grade(Enrollment enrollment, int marks, String feedback,ExamType examType) {
+        this.enrollment = enrollment;
         this.marks = marks;
         this.value = calculateGradeValue(marks);
         this.feedback = feedback;
+        this.examType = examType;
     }
 
-    // Getters and setters
+    // Getters and Setters
+
+    // ID
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    // Enrollment
+    public Enrollment getEnrollment() {
+        return enrollment;
     }
 
-    public Student getStudent() {
-        return student;
+    public void setEnrollment(Enrollment enrollment) {
+        this.enrollment = enrollment;
     }
 
-    public void setStudent(Student student) {
-        this.student = student;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
+    // Grade Value
     public GradeValue getValue() {
         return value;
     }
 
+    public void setValue(GradeValue value) {
+        this.value = value;
+    }
+
+    // Marks
     public int getMarks() {
         return marks;
     }
@@ -73,6 +73,7 @@ public class Grade {
         this.value = calculateGradeValue(marks);
     }
 
+    // Feedback
     public String getFeedback() {
         return feedback;
     }
@@ -81,6 +82,7 @@ public class Grade {
         this.feedback = feedback;
     }
 
+    // Private method to calculate GradeValue based on marks
     private GradeValue calculateGradeValue(int marks) {
         if (marks >= 85) {
             return GradeValue.A;
@@ -95,5 +97,13 @@ public class Grade {
         } else {
             return GradeValue.F;  // F for marks less than 40
         }
+    }
+
+    public ExamType getExamType() {
+        return examType;
+    }
+
+    public void setExamType(ExamType examType) {
+        this.examType = examType;
     }
 }

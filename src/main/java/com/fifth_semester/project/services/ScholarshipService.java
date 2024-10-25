@@ -28,13 +28,15 @@ public class ScholarshipService {
     private FeeRepository feeRepository;
 
     // Student applies for a scholarship
-    public Scholarship applyForScholarship(Long studentId, String scholarshipName, Double amount) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
+    public String applyForScholarship(Student student, String scholarshipName, Double amount) {
         // Create a new scholarship application
+        Scholarship scholarshipOpt = scholarshipRepository.findByNameAndStudent(scholarshipName,student);
+        if(scholarshipOpt != null) {
+            return "Scholarship application already exists";
+        }
         Scholarship scholarship = new Scholarship(student, scholarshipName, amount, ScholarshipStatus.PENDING, LocalDate.now(), null);
-        return scholarshipRepository.save(scholarship);
+        scholarshipRepository.save(scholarship);
+        return "Scholarship Applied";
     }
 
     // Admin reviews and approves or rejects a scholarship application
@@ -95,9 +97,7 @@ public class ScholarshipService {
     }
 
     // Get all scholarships for a student
-    public List<Scholarship> getScholarshipsForStudent(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+    public List<Scholarship> getScholarshipsForStudent(Student student) {
         return scholarshipRepository.findByStudent(student);
     }
 

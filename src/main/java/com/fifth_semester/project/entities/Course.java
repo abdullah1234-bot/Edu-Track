@@ -1,6 +1,10 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -10,11 +14,12 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String courseId;
 
     @Column(nullable = false)
     private String courseName;
+
     private String courseCode;
     private String description;
     private Integer creditHours;
@@ -23,25 +28,36 @@ public class Course {
     private Integer maxCapacity;
     private String fieldOfStudy; // e.g., "BCS"
     private Integer semester;
-    @ManyToOne
+
+    // One Course has many Enrollments
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private List<Enrollment> enrollments = new ArrayList<>();
+
+    // One Course has many Grades
+//    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Grade> grades = new ArrayList<>();
+
+//    // One Course has many Assignments
+//    @OneToMany(mappedBy = "courses", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference
+//    private List<Assignment> assignments = new ArrayList<>();
+
+    // One Course has many Examinations
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Exam> examinations = new ArrayList<>();
+
+    // One Course has many Sections
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Section> sections = new ArrayList<>();
+
+    // Many Courses can have one Teacher
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id")
+    @JsonBackReference
     private Teacher teacher;
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Enrollment> enrollments;
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Grade> grades;
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Assignment> assignments;
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Exam> examinations;
-
-    @ManyToOne
-    @JoinColumn(name = "section_id")
-    private Section section;
 
     public Course() {}
 
@@ -54,22 +70,25 @@ public class Course {
         this.fieldOfStudy = fieldOfStudy;
         this.semester = semester;
         this.maxCapacity = maxCapacity;
-
     }
 
+    // Getters and Setters
 
-    // Getters and setters
+    // ID
+    public Long getId() {
+        return id;
+    }
 
+    // Course ID
     public String getCourseId() {
-
         return courseId;
     }
 
     public void setCourseId(String courseId) {
-
         this.courseId = courseId;
     }
 
+    // Course Name
     public String getCourseName() {
         return courseName;
     }
@@ -78,86 +97,7 @@ public class Course {
         this.courseName = courseName;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Integer getMaxCapacity() {
-        return maxCapacity;
-    }
-
-    public void setMaxCapacity(Integer maxCapacity) {
-        this.maxCapacity = maxCapacity;
-    }
-
-    public Teacher getTeacher() {
-        return teacher;
-    }
-
-    public void setTeacher(Teacher teacher) {
-        this.teacher = teacher;
-    }
-
-    public List<Enrollment> getEnrollments() {
-        return enrollments;
-    }
-
-    public void setEnrollments(List<Enrollment> enrollments) {
-        this.enrollments = enrollments;
-    }
-
-    public List<Grade> getGrades() {
-        return grades;
-    }
-
-    public void setGrades(List<Grade> grades) {
-        this.grades = grades;
-    }
-
-    public List<Assignment> getAssignments() {
-        return assignments;
-    }
-
-    public void setAssignments(List<Assignment> assignments) {
-        this.assignments = assignments;
-    }
-
-    public List<Exam> getExaminations() {
-        return examinations;
-    }
-
-    public void setExaminations(List<Exam> examinations) {
-        this.examinations = examinations;
-    }
-
-    public Integer getCreditHours() {
-        return creditHours;
-    }
-
-    public void setCreditHours(Integer creditHours) {
-        this.creditHours = creditHours;
-    }
-
-    public Integer getEligibleSemester() {
-        return eligibleSemester;
-    }
-
-    public void setEligibleSemester(Integer eligibleSemester) {
-        this.eligibleSemester = eligibleSemester;
-    }
-
-    public Boolean getBacklogEligible() {
-        return isBacklogEligible;
-    }
-
-    public void setBacklogEligible(Boolean backlogEligible) {
-        isBacklogEligible = backlogEligible;
-    }
-
+    // Course Code
     public String getCourseCode() {
         return courseCode;
     }
@@ -166,6 +106,52 @@ public class Course {
         this.courseCode = courseCode;
     }
 
+    // Description
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    // Credit Hours
+    public Integer getCreditHours() {
+        return creditHours;
+    }
+
+    public void setCreditHours(Integer creditHours) {
+        this.creditHours = creditHours;
+    }
+
+    // Eligible Semester
+    public Integer getEligibleSemester() {
+        return eligibleSemester;
+    }
+
+    public void setEligibleSemester(Integer eligibleSemester) {
+        this.eligibleSemester = eligibleSemester;
+    }
+
+    // Backlog Eligibility
+    public Boolean getBacklogEligible() {
+        return isBacklogEligible;
+    }
+
+    public void setBacklogEligible(Boolean backlogEligible) {
+        isBacklogEligible = backlogEligible;
+    }
+
+    // Max Capacity
+    public Integer getMaxCapacity() {
+        return maxCapacity;
+    }
+
+    public void setMaxCapacity(Integer maxCapacity) {
+        this.maxCapacity = maxCapacity;
+    }
+
+    // Field of Study
     public String getFieldOfStudy() {
         return fieldOfStudy;
     }
@@ -174,6 +160,7 @@ public class Course {
         this.fieldOfStudy = fieldOfStudy;
     }
 
+    // Semester
     public Integer getSemester() {
         return semester;
     }
@@ -182,19 +169,62 @@ public class Course {
         this.semester = semester;
     }
 
-    public Section getSection() {
-        return section;
+    // Enrollments
+    public List<Enrollment> getEnrollments() {
+        return enrollments;
     }
 
-    public void setSection(Section section) {
-        this.section = section;
+    public void setEnrollments(List<Enrollment> enrollments) {
+        this.enrollments = enrollments;
     }
 
-    public Long getId() {
-        return id;
+    // Examinations
+    public List<Exam> getExaminations() {
+        return examinations;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setExaminations(List<Exam> examinations) {
+        this.examinations = examinations;
     }
+
+    // Sections
+    public List<Section> getSections() {
+        return sections;
+    }
+
+    public void setSections(List<Section> sections) {
+        this.sections = sections;
+    }
+
+    // Teacher
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
+    }
+
+    // Helper Methods
+    public void addSection(Section section) {
+        sections.add(section);
+        section.setCourse(this);
+    }
+
+    public void removeSection(Section section) {
+        sections.remove(section);
+        section.setCourse(null);
+    }
+
+    public void addExam(Exam exam) {
+        examinations.add(exam);
+        exam.setCourse(this);
+    }
+
+    public void removeExam(Exam exam) {
+        examinations.remove(exam);
+        exam.setCourse(null);
+    }
+
+    // Similar helper methods can be added for Enrollments, Grades, Assignments
 }

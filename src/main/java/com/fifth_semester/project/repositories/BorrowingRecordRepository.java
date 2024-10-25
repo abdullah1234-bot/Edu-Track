@@ -23,4 +23,6 @@ public interface BorrowingRecordRepository extends JpaRepository<BorrowingRecord
 
     // Find overdue records for a student where the return date is before today and not yet returned
     List<BorrowingRecord> findByStudentAndReturnDateBeforeAndReturnDateIsNull(Student student, LocalDate currentDate);
+
+    List<BorrowingRecord> findByStudentAndBorrowDateBeforeAndReturnDateIsNull(Student student, LocalDate oneWeekAgo);
 }

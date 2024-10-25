@@ -18,30 +18,6 @@ public class FeeController {
     @Autowired
     private FeeService feeService;
 
-    // Get all fee statements for a specific student
-    @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<Fee>> getFeesForStudent(@PathVariable Long studentId) {
-        List<Fee> fees = feeService.getFeesForStudent(studentId);
-        return ResponseEntity.ok(fees);
-    }
-
-    // Get fee statement by student and period
-    @GetMapping("/student/{studentId}/period")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<Fee> getFeeByStudentAndPeriod(@PathVariable Long studentId, @RequestParam String period) {
-        Fee fee = feeService.getFeeByStudentAndPeriod(studentId, period);
-        return ResponseEntity.ok(fee);
-    }
-
-    // Make a payment for a specific fee record
-    @PostMapping("/payment/{feeId}")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<String> makeFeePayment(@PathVariable Long feeId, @RequestParam Double amount) {
-        String result = feeService.makeFeePayment(feeId, amount);
-        return ResponseEntity.ok(result);
-    }
-
     // Create or update fee structure (admin access)
     @PostMapping("/admin/student/{studentId}/create-or-update")
     @PreAuthorize("hasRole('ADMIN')")
@@ -50,6 +26,30 @@ public class FeeController {
                                                  @RequestParam String period) {
         Fee fee = feeService.createOrUpdateFee(studentId, totalAmount, period);
         return ResponseEntity.ok(fee);
+    }
+
+    // Get all fee statements for a specific student
+    @GetMapping("/student")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<Fee>> getFeesForStudent() {
+        List<Fee> fees = feeService.getFeesForStudent();
+        return ResponseEntity.ok(fees);
+    }
+
+    // Get fee statement by student and period
+    @GetMapping("/student/period")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Fee> getFeeByStudentAndPeriod(@RequestParam String period) {
+        Fee fee = feeService.getFeeByStudentAndPeriod(period);
+        return ResponseEntity.ok(fee);
+    }
+
+    // Make a payment for a specific fee record
+    @PostMapping("/payment/{feeId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> makeFeePayment(@PathVariable Long feeId, @RequestParam Double amount) {
+        String result = feeService.makeFeePayment(feeId, amount);
+        return ResponseEntity.ok(result);
     }
 
     // Get all fee records for reporting (admin access)
@@ -61,16 +61,16 @@ public class FeeController {
     }
 
     // Get all unpaid fees for a student
-    @GetMapping("/student/{studentId}/unpaid")
-    public ResponseEntity<List<Fee>> getUnpaidFeesForStudent(@PathVariable Long studentId) {
-        List<Fee> unpaidFees = feeService.getUnpaidFeesForStudent(studentId);
+    @GetMapping("/student/unpaid")
+    public ResponseEntity<List<Fee>> getUnpaidFeesForStudent() {
+        List<Fee> unpaidFees = feeService.getUnpaidFeesForStudent();
         return ResponseEntity.ok(unpaidFees);
     }
 
     // Get the latest unpaid fee for a student
-    @GetMapping("/student/{studentId}/unpaid/latest")
-    public ResponseEntity<Fee> getLatestUnpaidFeeForStudent(@PathVariable Long studentId) {
-        Fee latestUnpaidFee = feeService.getLatestUnpaidFeeForStudent(studentId);
+    @GetMapping("/student/unpaid/latest")
+    public ResponseEntity<Fee> getLatestUnpaidFeeForStudent() {
+        Fee latestUnpaidFee = feeService.getLatestUnpaidFeeForStudent();
         return ResponseEntity.ok(latestUnpaidFee);
     }
 

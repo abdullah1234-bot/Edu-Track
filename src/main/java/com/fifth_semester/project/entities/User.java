@@ -17,7 +17,7 @@ public class User {
   private Long id;
 
   @NotBlank
-  @Size(max = 20)
+  @Size(max = 30, message = "Username must be at most 30 characters")
   private String username;
 
   @NotBlank

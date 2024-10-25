@@ -1,10 +1,17 @@
 package com.fifth_semester.project.services;
 
+import com.fifth_semester.project.dtos.response.TeacherDTO;
 import com.fifth_semester.project.dtos.response.TeacherPerformanceDTO;
+import com.fifth_semester.project.entities.Section;
 import com.fifth_semester.project.entities.Teacher;
 import com.fifth_semester.project.entities.Course;
+import com.fifth_semester.project.repositories.SectionRepository;
 import com.fifth_semester.project.repositories.TeacherRepository;
 import com.fifth_semester.project.repositories.CourseRepository;
+import com.fifth_semester.project.utils.TeacherMapper;
+import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TeacherService {
@@ -23,8 +31,12 @@ public class TeacherService {
     private CourseRepository courseRepository;
 
     @Autowired
+    private SectionRepository sectionRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private static final Logger logger = LoggerFactory.getLogger(TeacherService.class);
     // Method to create a new teacher
     public String createTeacher(String username, String email, String department, String officeHours,
                                 String qualification, String specialization, LocalDate dateOfHire) {
@@ -99,31 +111,72 @@ public class TeacherService {
     }
 
     // Assign teacher to a course
-    public String assignTeacherToCourse(Long teacherId, Long courseId) {
+//    public String assignTeacherToCourse(Long teacherId, Long courseId) {
+//        Optional<Teacher> teacherOpt = teacherRepository.findById(teacherId);
+//        Optional<Course> courseOpt = courseRepository.findById(courseId);
+//
+//        if (teacherOpt.isEmpty()) {
+//            return "Teacher not found";
+//        }
+//
+//        if (courseOpt.isEmpty()) {
+//            return "Course not found";
+//        }
+//
+//        Teacher teacher = teacherOpt.get();
+//        Course course = courseOpt.get();
+//
+//        course.setTeacher(teacher);
+//
+//        // Add course to the teacher's list of courses if it's not already added
+//        if (!teacher.getCourses().contains(course)) {
+//            teacher.getCourses().add(course);
+//        }
+//
+//        teacherRepository.save(teacher);
+//        courseRepository.save(course);
+//        return "Teacher assigned to course successfully";
+//    }
+    @Transactional
+    public String assignTeacherToCourseAndSection(Long teacherId, Long courseId, Long sectionId) {
+        logger.debug("Assigning teacher with email '{}' to course '{}' and section '{}'", teacherId, courseId, sectionId);
+
+        // Fetch Teacher by email
         Optional<Teacher> teacherOpt = teacherRepository.findById(teacherId);
-        Optional<Course> courseOpt = courseRepository.findById(courseId);
-
         if (teacherOpt.isEmpty()) {
-            return "Teacher not found";
+            logger.warn("Teacher not found with email: {}", teacherId);
+            return "Teacher not found with email: " + teacherId;
         }
-
-        if (courseOpt.isEmpty()) {
-            return "Course not found";
-        }
-
         Teacher teacher = teacherOpt.get();
+
+        // Fetch Course by name
+        Optional<Course> courseOpt = courseRepository.findById(courseId);
+        if (courseOpt.isEmpty()) {
+            logger.warn("Course not found with name: {}", courseId);
+            return "Course not found with name: " + courseId;
+        }
         Course course = courseOpt.get();
 
-        course.setTeacher(teacher);
+        // Fetch Section by name and associated course
+        Optional<Section> sectionOpt = sectionRepository.findByIdAndCourse(sectionId, course);
+        if (sectionOpt.isEmpty()) {
+            logger.warn("Section not found with name: {} for course: {}", sectionId, courseId);
+            return "Section not found with name: " + sectionId + " for course: " + courseId;
+        }
+        Section section = sectionOpt.get();
 
-        // Add course to the teacher's list of courses if it's not already added
-        if (!teacher.getCourses().contains(course)) {
-            teacher.getCourses().add(course);
+        // Assign Teacher to Section if not already assigned
+        if (section.getTeacher() == null || !section.getTeacher().equals(teacher)) {
+            section.setTeacher(teacher);
+            teacher.getSections().add(section);
+            sectionRepository.save(section);
+            teacherRepository.save(teacher);
+            logger.info("Assigned teacher '{}' to course '{}' and section '{}'", teacher.getEmail(), course.getCourseName(), section.getSectionName());
+        } else {
+            logger.info("Teacher '{}' is already assigned to course '{}' and section '{}'", teacher.getEmail(), course.getCourseName(), section.getSectionName());
         }
 
-        teacherRepository.save(teacher);
-        courseRepository.save(course);
-        return "Teacher assigned to course successfully";
+        return "Teacher assigned to course and section successfully";
     }
 
     // Remove the assigned teacher from a course and update the teacher's course list
@@ -167,8 +220,13 @@ public class TeacherService {
     }
 
     // Get all teachers
-    public List<Teacher> getAllTeachers() {
-        return teacherRepository.findAll();
+    public List<TeacherDTO> getAllTeachers() {
+        List<Teacher> teachers = teacherRepository.findAll();
+
+        // Map List<Teacher> to List<TeacherDTO>
+        return teachers.stream()
+                .map(TeacherMapper::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     // Delete teacher by ID

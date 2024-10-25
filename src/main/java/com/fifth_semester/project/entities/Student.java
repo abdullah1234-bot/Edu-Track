@@ -1,5 +1,8 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -7,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "students")
 public class Student extends User {
     @Column(unique = true)
@@ -24,22 +28,31 @@ public class Student extends User {
     private LocalDate dateOfBirth;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Enrollment> enrollments;
 
-    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Grade> grades;
+//    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference
+//    private List<Grade> grades;
+@OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonManagedReference
+private List<Scholarship> scholarships;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Assignment> assignments;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Fee> fees;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<BorrowingRecord> borrowingRecords;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @JsonBackReference
     private Parent parent;
 //
 //    @ManyToMany(fetch = FetchType.LAZY)
@@ -135,5 +148,25 @@ public class Student extends User {
         return enrollments.stream()
                 .map(Enrollment::getCourse)
                 .collect(Collectors.toList());
+    }
+
+    public List<Assignment> getAssignments() {
+        return assignments;
+    }
+
+    public void setAssignments(List<Assignment> assignments) {
+        this.assignments = assignments;
+    }
+
+    public void setEnrollments(List<Enrollment> enrollments) {
+        this.enrollments = enrollments;
+    }
+
+    public List<Scholarship> getScholarships() {
+        return scholarships;
+    }
+
+    public void setScholarships(List<Scholarship> scholarships) {
+        this.scholarships = scholarships;
     }
 }

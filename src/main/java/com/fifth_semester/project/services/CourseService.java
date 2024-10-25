@@ -75,8 +75,8 @@ public class CourseService {
         enrollment.setStudent(student);
         enrollment.setCourse(course);
         enrollment.setSemester(student.getAcademicYear());
-        enrollment.setBacklog(isBacklog);
         enrollment.setSection(section);
+        enrollment.setCleared(false);
 
         // Save the enrollment
         enrollmentRepository.save(enrollment);
@@ -84,22 +84,60 @@ public class CourseService {
         return "Enrolled successfully in course and assigned to section " + section.getSectionName();
     }
 
-    private Section findOrCreateSectionForCourse(Course course) {
-        // Find the latest section for the course
-        Optional<Section> latestSection = sectionRepository.findLatestSectionByCourse(course);
-        Section section;
+//    private Section findOrCreateSectionForCourse(Course course) {
+//        // Find the latest section for the course
+//        Optional<Section> latestSection = sectionRepository.findFirstSectionByCourseWithStudentCountLessThan(course);
+//        Section section;
+//
+//        if (latestSection.getPresentStatus() && latestSection.get().getStudentCount() < 50) {
+//            section = latestSection.get();
+//        } else {
+//            int newSectionNumber = latestSection.getPresentStatus() ? latestSection.get().getSectionName().charAt(0) + 1 : 'A';
+//            section = new Section(String.valueOf((char) newSectionNumber));
+//            section.setCourse(course);
+//            sectionRepository.save(section);
+//        }
+//        return section;
+//    }
+public Section findOrCreateSectionForCourse(Course course) {
+    Optional<Section> optionalSection = sectionRepository.findFirstSectionByCourseWithStudentCountLessThan(course.getId());
 
-        if (latestSection.isPresent() && latestSection.get().getStudentCount() < 50) {
-            // Use the existing section if it has space
-            section = latestSection.get();
+    if (optionalSection.isPresent()) {
+        // Section found with available capacity
+        return optionalSection.get();
+    } else {
+        // No section found; create a new one
+        return createNewSectionForCourse(course);
+    }
+}
+
+    private Section createNewSectionForCourse(Course course) {
+        Optional<Section> lastSectionOpt = sectionRepository.findTopByCourseOrderBySectionNameDesc(course);
+        String newSectionName;
+
+        if (lastSectionOpt.isPresent()) {
+            String lastSectionName = lastSectionOpt.get().getSectionName();
+            newSectionName = getNextSectionName(lastSectionName);
         } else {
-            // Create a new section
-            int newSectionNumber = latestSection.isPresent() ? latestSection.get().getSectionName().charAt(0) + 1 : 'A';
-            section = new Section(String.valueOf((char) newSectionNumber));
-            section.setCourse(course);
-            sectionRepository.save(section);
+            newSectionName = "A";
         }
-        return section;
+
+        Section newSection = new Section(newSectionName,course);
+        newSection.setCourse(course);
+        sectionRepository.save(newSection);
+        return newSection;
+    }
+
+    private String getNextSectionName(String lastSectionName) {
+        // Implement logic to increment section names beyond 'Z' if necessary
+        // For simplicity, we'll increment the last character
+        char lastChar = lastSectionName.charAt(lastSectionName.length() - 1);
+        if (lastChar == 'Z') {
+            // Handle overflow, e.g., 'Z' to 'AA'
+            return lastSectionName + 'A';
+        } else {
+            return lastSectionName.substring(0, lastSectionName.length() - 1) + (char) (lastChar + 1);
+        }
     }
 
     private boolean isStudentAlreadyEnrolled(Student student, Course course) {

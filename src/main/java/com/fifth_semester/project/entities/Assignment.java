@@ -1,6 +1,8 @@
 package com.fifth_semester.project.entities;
 
 import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -18,28 +20,26 @@ public class Assignment {
     private boolean submitted;
     private boolean graded;
     private String attachment;  // Assuming this is a file path or URL
-
-    @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
-
-    @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
-
-    @ManyToOne
-    @JoinColumn(name = "section_id", nullable = false)
-    private Section section;  // The section of the course for the assignment
-
     private String feedback;  // Feedback from the teacher
     private int marks;  // Marks for the assignment
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "student_id", nullable = false)
+    @JsonBackReference
+    private Student student;
+
+    // Optional: Many Exams belong to one Section
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "section_id")
+    @JsonBackReference
+    private Section section;
+
+
     public Assignment() {}
 
-    public Assignment(String assignmentTitle, String description, Course course, Student student, LocalDate uploadDate, LocalDate dueDate, boolean submitted, boolean graded, String attachment) {
+    public Assignment(String assignmentTitle, String description, Student student, LocalDate uploadDate, LocalDate dueDate, boolean submitted, boolean graded, String attachment) {
         this.assignmentTitle = assignmentTitle;
         this.description = description;
-        this.course = course;
         this.student = student;
         this.uploadDate = uploadDate;
         this.dueDate = dueDate;
@@ -71,14 +71,6 @@ public class Assignment {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
     }
 
     public Student getStudent() {

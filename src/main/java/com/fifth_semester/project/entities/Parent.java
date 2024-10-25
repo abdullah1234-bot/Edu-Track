@@ -1,5 +1,6 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -12,6 +13,7 @@ public class Parent extends User {
     private String occupation;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Student> children;  // List of children (students) associated with the parent
 
     public Parent() {}
@@ -25,13 +27,6 @@ public class Parent extends User {
 
     // Getters and setters for Parent-specific fields
 
-    public String getContactNumber() {
-        return contactNumber;
-    }
-
-    public void setContactNumber(String contactNumber) {
-        this.contactNumber = contactNumber;
-    }
 
     public String getAddress() {
         return address;
@@ -55,5 +50,13 @@ public class Parent extends User {
 
     public void setChildren(List<Student> children) {
         this.children = children;
+    }
+
+    public String getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
     }
 }

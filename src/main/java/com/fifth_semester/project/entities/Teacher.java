@@ -1,14 +1,17 @@
 package com.fifth_semester.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "teachers")
 public class Teacher extends User {
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String teacherId;
     private String department;
     private String officeHours;
@@ -16,8 +19,20 @@ public class Teacher extends User {
     private String qualification;
     private String specialization;
 
-    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Course> courses;
+    // One Teacher has many Sections
+    @OneToMany(mappedBy = "teacher", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Section> sections = new ArrayList<>();
+
+    // One Teacher has many Courses
+    @OneToMany(mappedBy = "teacher", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Course> courses = new ArrayList<>();
+
+    // One Teacher has many ClassSchedules (assuming ClassSchedule entity exists)
+    @OneToMany(mappedBy = "teacher", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ClassSchedule> classSchedules = new ArrayList<>();
 
     public Teacher() {}
 
@@ -31,8 +46,9 @@ public class Teacher extends User {
         this.specialization = specialization;
     }
 
-    // Getters and setters
+    // Getters and Setters
 
+    // Teacher ID
     public String getTeacherId() {
         return teacherId;
     }
@@ -41,6 +57,7 @@ public class Teacher extends User {
         this.teacherId = teacherId;
     }
 
+    // Department
     public String getDepartment() {
         return department;
     }
@@ -49,6 +66,7 @@ public class Teacher extends User {
         this.department = department;
     }
 
+    // Office Hours
     public String getOfficeHours() {
         return officeHours;
     }
@@ -57,6 +75,7 @@ public class Teacher extends User {
         this.officeHours = officeHours;
     }
 
+    // Date of Hire
     public LocalDate getDateOfHire() {
         return dateOfHire;
     }
@@ -65,14 +84,7 @@ public class Teacher extends User {
         this.dateOfHire = dateOfHire;
     }
 
-    public List<Course> getCourses() {
-        return courses;
-    }
-
-    public void setCourses(List<Course> courses) {
-        this.courses = courses;
-    }
-
+    // Qualification
     public String getQualification() {
         return qualification;
     }
@@ -81,6 +93,7 @@ public class Teacher extends User {
         this.qualification = qualification;
     }
 
+    // Specialization
     public String getSpecialization() {
         return specialization;
     }
@@ -88,4 +101,62 @@ public class Teacher extends User {
     public void setSpecialization(String specialization) {
         this.specialization = specialization;
     }
+
+    // Sections
+    public List<Section> getSections() {
+        return sections;
+    }
+
+    public void setSections(List<Section> sections) {
+        this.sections = sections;
+    }
+
+    // Courses
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
+
+    // ClassSchedules
+    public List<ClassSchedule> getClassSchedules() {
+        return classSchedules;
+    }
+
+    public void setClassSchedules(List<ClassSchedule> classSchedules) {
+        this.classSchedules = classSchedules;
+    }
+
+    // Helper Methods
+    public void addSection(Section section) {
+        sections.add(section);
+        section.setTeacher(this);
+    }
+
+    public void removeSection(Section section) {
+        sections.remove(section);
+        section.setTeacher(null);
+    }
+
+    public void addCourse(Course course) {
+        courses.add(course);
+        course.setTeacher(this);
+    }
+
+    public void removeCourse(Course course) {
+        courses.remove(course);
+        course.setTeacher(null);
+    }
+
+//    public void addClassSchedule(ClassSchedule classSchedule) {
+//        classSchedules.add(classSchedule);
+//        classSchedule.setTeacher(this);
+//    }
+//
+//    public void removeClassSchedule(ClassSchedule classSchedule) {
+//        classSchedules.remove(classSchedule);
+//        classSchedule.setTeacher(null);
+//    }
 }

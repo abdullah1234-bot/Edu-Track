@@ -13,4 +13,6 @@ public interface ScholarshipRepository extends JpaRepository<Scholarship, Long> 
     List<Scholarship> findByStudentId(Long studentId);
     List<Scholarship> findByStudent(Student student);
     List<Scholarship> findByStatus(ScholarshipStatus status);
+
+    Scholarship findByNameAndStudent(String scholarshipName, Student student);
 }

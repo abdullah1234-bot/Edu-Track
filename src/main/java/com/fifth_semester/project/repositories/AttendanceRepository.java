@@ -1,9 +1,8 @@
 package com.fifth_semester.project.repositories;
 
-import com.fifth_semester.project.entities.Attendance;
-import com.fifth_semester.project.entities.Course;
-import com.fifth_semester.project.entities.Section;
-import com.fifth_semester.project.entities.Student;
+import com.fifth_semester.project.dtos.response.CourseAndSectionAttendanceDTO;
+import com.fifth_semester.project.dtos.response.StudentAttendanceResponseDTO;
+import com.fifth_semester.project.entities.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,7 +21,7 @@ import java.util.Optional;
 //    // Get attendance for all students in a course
 //    List<Attendance> findByCourse(Course course);
 //    // Find attendance by course and section (student's section)
-//    List<Attendance> findByCourseAndCourseSection(Course course, Section section);
+//    List<Attendance> findByEnrollmentCourseAndEnrollmentSection(Course course, Section section);
 //    // Find attendance by student, course, and date
 //    Optional<Attendance> findByStudentAndCourseAndAttendanceDate(Student student, Course course, LocalDate attendanceDate);
 //    // Find attendance records by section and course
@@ -37,14 +36,32 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     @Query("SELECT a FROM Attendance a WHERE a.enrollment.student.id = :studentId")
     List<Attendance> findByStudentId(@Param("studentId") Long studentId);
 
+    @Query("SELECT new com.fifth_semester.project.dtos.response.StudentAttendanceResponseDTO(" +
+            "a.attendanceDate, a.isPresent, c.courseName, s.sectionName) " +
+            "FROM Attendance a " +
+            "JOIN a.enrollment e " +
+            "JOIN e.course c " +
+            "JOIN e.section s " +
+            "WHERE e.student.id = :studentId")
+    List<StudentAttendanceResponseDTO> findByStudentIdwithEnrollmentDetails(@Param("studentId") Long studentId);
+
     @Query("SELECT a FROM Attendance a WHERE a.enrollment.course.id = :courseId")
     List<Attendance> findByCourseId(@Param("courseId") Long courseId);
 
     @Query("SELECT a FROM Attendance a WHERE a.enrollment.student = :student AND a.enrollment.course = :course")
     List<Attendance> findByStudentAndCourse(@Param("student") Student student, @Param("course") Course course);
 
-    @Query("SELECT a FROM Attendance a WHERE a.enrollment.course = :course AND a.enrollment.section = :section")
-    List<Attendance> findByCourseAndSection(@Param("course") Course course, @Param("section") Section section);
+
+    @Query("SELECT new com.fifth_semester.project.dtos.response.CourseAndSectionAttendanceDTO(" +
+            "a.attendanceDate, a.isPresent, c.courseName, s.username, se.sectionName) " +
+            "FROM Attendance a " +
+            "JOIN a.enrollment e " +
+            "JOIN e.course c " +
+            "JOIN e.student s " +
+            "JOIN e.section se " +
+            "WHERE c = :course AND se = :section"
+    )
+    List<CourseAndSectionAttendanceDTO> findByCourseAndSection(@Param("course") Course course, @Param("section") Section section);
 
     @Query("SELECT a FROM Attendance a WHERE a.enrollment.course = :course")
     List<Attendance> findByCourse(@Param("course") Course course);
@@ -57,4 +74,10 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     @Query("SELECT a FROM Attendance a WHERE a.enrollment.student = :student")
     List<Attendance> findByStudent(@Param("student") Student student);
+
+    List<Attendance> findByEnrollmentCourseCourseName(String courseName);
+
+    List<Attendance> findByEnrollment(Enrollment enrollment);
+
+    Optional<Attendance> findByEnrollmentAndAttendanceDate(Enrollment enrollment, LocalDate attendanceDate);
 }
