@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<sonar.token>sqa_d012769439cb63fc1cce3b59faecd0368a3986f9</sonar.token>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -157,6 +158,12 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>3.7.0.1746</version>
+			</plugin>
+
 		</plugins>
 	</build>
 

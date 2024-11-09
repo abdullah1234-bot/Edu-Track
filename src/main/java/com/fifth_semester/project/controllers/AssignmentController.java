@@ -24,7 +24,6 @@ import java.util.List;
 @RequestMapping("/api/assignments")
 @Tag(name = "Assignment APIs")
 public class AssignmentController {
-
     @Autowired
     private AssignmentService assignmentService;
     @Autowired
