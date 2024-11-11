@@ -1,5 +1,6 @@
 package com.fifth_semester.project.repositories;
 
+import com.fifth_semester.project.dtos.response.AssignmentDTO;
 import com.fifth_semester.project.entities.Assignment;
 import com.fifth_semester.project.entities.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -46,5 +48,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
             "WHERE se.course_id = :courseId AND a.student_id = :studentId",
             nativeQuery = true)
     List<Object[]> findBySectionCourseAndStudent(@Param("courseId") Long courseId, @Param("studentId") Long studentId);
+
 
 }

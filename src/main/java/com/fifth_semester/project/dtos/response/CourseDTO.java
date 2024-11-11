@@ -7,6 +7,13 @@ public class CourseDTO {
     private Integer creditHours;
     private String description;
 
+    public CourseDTO(Long id, String courseName, String courseCode, Integer creditHours, String description) {
+        this.id = id;
+        this.courseName = courseName;
+        this.courseCode = courseCode;
+        this.creditHours = creditHours;
+        this.description = description;
+    }
     public Long getId() {
         return id;
     }

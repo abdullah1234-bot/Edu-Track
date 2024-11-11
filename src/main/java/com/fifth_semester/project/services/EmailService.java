@@ -20,7 +20,17 @@ public class EmailService {
         message.setSubject("Your Account Has Been Approved");
         message.setText("Dear " + username + ", \n\n" +
                 "Your student account has been approved. You can now log in to the system.\n\n" +
-                "Best regards,\nYour School");
+                "Best regards,\nEduTrack");
+        emailSender.send(message);
+    }
+
+    public void sendStudentRejectedEmail(String to, String username) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Your Account Has Been Rejected");
+        message.setText("Dear " + username + ", \n\n" +
+                "Your student account has been rejected. You can contact admin on OneStop for inquiry.\n\n" +
+                "Best regards,\nEduTrack");
         emailSender.send(message);
     }
 
@@ -85,7 +95,7 @@ public class EmailService {
         message.setText("Dear " + username + ", \n\n" +
                 "This is a reminder that your assignment '" + assignmentTitle + "' is due on " + dueDate + ". \n\n" +
                 "Please ensure that you submit it before the deadline.\n\n" +
-                "Best regards,\nYour School");
+                "Best regards,\nEduTrack");
 
         emailSender.send(message);
     }

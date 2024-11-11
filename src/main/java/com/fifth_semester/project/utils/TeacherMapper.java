@@ -30,12 +30,8 @@ public class TeacherMapper {
     }
 
     private static CourseDTO mapCourseToDTO(Course course) {
-        CourseDTO courseDTO = new CourseDTO();
-        courseDTO.setId(course.getId());
-        courseDTO.setCourseName(course.getCourseName());
-        courseDTO.setCourseCode(course.getCourseCode());
-        courseDTO.setCreditHours(course.getCreditHours());
-        courseDTO.setDescription(course.getDescription());
+        CourseDTO courseDTO = new CourseDTO(course.getId(),course.getCourseName(),course.getCourseCode(),course.getCreditHours(),course.getDescription());
+
 
         return courseDTO;
     }
