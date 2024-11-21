@@ -2,6 +2,7 @@ package com.fifth_semester.project.controllers;
 
 import com.fifth_semester.project.dtos.response.TeacherDTO;
 import com.fifth_semester.project.dtos.response.TeacherPerformanceDTO;
+import com.fifth_semester.project.dtos.response.TeacherResponseDTO;
 import com.fifth_semester.project.entities.Teacher;
 import com.fifth_semester.project.entities.Course;
 import com.fifth_semester.project.services.TeacherService;
@@ -25,24 +26,24 @@ public class TeacherController {
     private TeacherService teacherService;
 
     // Endpoint to create a new teacher
-//    @PostMapping("/create")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public ResponseEntity<?> createTeacher(
-//            @RequestParam String username,
-//            @RequestParam String email,
-//            @RequestParam String department,
-//            @RequestParam String officeHours,
-//            @RequestParam String qualification,
-//            @RequestParam String specialization,
-//            @RequestParam LocalDate dateOfHire) {
-//
-//        try {
-//            String result = teacherService.createTeacher(username, email, department, officeHours, qualification, specialization, dateOfHire);
-//            return ResponseEntity.ok(result);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.badRequest().body(e.getMessage());
-//        }
-//    }
+    @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createTeacher(
+            @RequestParam String username,
+            @RequestParam String email,
+            @RequestParam String department,
+            @RequestParam String officeHours,
+            @RequestParam String qualification,
+            @RequestParam String specialization,
+            @RequestParam LocalDate dateOfHire) {
+
+        try {
+            String result = teacherService.createTeacher(username, email, department, officeHours, qualification, specialization, dateOfHire);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     // Endpoint to update an existing teacher
     @PutMapping("/update/{teacherId}")
@@ -92,18 +93,18 @@ public class TeacherController {
     // Get all teachers
     @GetMapping("/getinfoofall")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TeacherDTO>> getAllTeachers() {
-        List<TeacherDTO> teachers = teacherService.getAllTeachers();  // Returns DTOs
-        return ResponseEntity.ok(teachers);
+    public ResponseEntity<List<TeacherResponseDTO>> getAllTeachers() {
+        List<TeacherResponseDTO> teachersInfo = teacherService.getAllTeachers(); // Returns DTOs
+        return ResponseEntity.ok(teachersInfo);
     }
 
 
     // Get teacher by ID
     @GetMapping("/info/{teacherId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-    public ResponseEntity<Optional<Teacher>> getTeacherById(@PathVariable Long teacherId) {
-        Optional<Teacher> teacher = teacherService.getTeacherById(teacherId);
-        return ResponseEntity.ok(teacher);
+    public ResponseEntity<TeacherResponseDTO> getTeacherById(@PathVariable Long teacherId) {
+        TeacherResponseDTO teacherInfo = teacherService.getTeacherById(teacherId);
+        return ResponseEntity.ok(teacherInfo);
     }
 
     // Delete a teacher by ID

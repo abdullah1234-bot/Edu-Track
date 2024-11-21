@@ -72,4 +72,5 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
             "FROM Teacher t " +
             "WHERE t = :teacher")
     InfoTeacherDTO getTeacherInfo(@Param("teacher") Teacher teacher);
+
 }

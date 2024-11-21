@@ -81,24 +81,49 @@ public class FeeService {
     }
 
     // Admins create or update fee structure for a student
+//    @Transactional
+//    public Fee createOrUpdateFee(Long studentId, Double totalAmount, String period) {
+//        Student student = studentRepository.findById(studentId)
+//                .orElseThrow(() -> new RuntimeException("Student not found"));
+//
+//        Optional<Fee> existingFee = feeRepository.findByyStudentAndPeriod(student, period);
+//
+//        Fee fee;
+//        if (existingFee.isPresent()) {
+//            fee = existingFee.get();
+//            fee.setTotalAmount(totalAmount);
+//            fee.setDueAmount(totalAmount - fee.getPaidAmount());
+//        } else {
+//            fee = new Fee(student, totalAmount, 0.0, totalAmount, "Unpaid", period);
+//            student.getFees().add(fee);
+//        }
+//
+//        studentRepository.save(student);
+//        feeRepository.save(fee);
+//        return fee;
+//    }
     @Transactional
     public Fee createOrUpdateFee(Long studentId, Double totalAmount, String period) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
+        // Normalize period for consistency
+        period = period.toLowerCase();
+
         Optional<Fee> existingFee = feeRepository.findByStudentAndPeriod(student, period);
 
         Fee fee;
         if (existingFee.isPresent()) {
+            // Update existing fee
             fee = existingFee.get();
             fee.setTotalAmount(totalAmount);
             fee.setDueAmount(totalAmount - fee.getPaidAmount());
         } else {
+            // Create a new fee
             fee = new Fee(student, totalAmount, 0.0, totalAmount, "Unpaid", period);
-            student.getFees().add(fee);
+            student.getFees().add(fee);  // Maintain bidirectional relationship
         }
 
-        studentRepository.save(student);
         feeRepository.save(fee);
         return fee;
     }

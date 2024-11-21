@@ -2,10 +2,12 @@ package com.fifth_semester.project.repositories;
 
 import com.fifth_semester.project.entities.Course;
 import com.fifth_semester.project.entities.Section;
+import com.fifth_semester.project.entities.Teacher;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -45,4 +47,14 @@ public interface SectionRepository extends JpaRepository<Section, Long> {
             @Param("courseName") String courseName,
             @Param("teacherName") String teacherName
     );
+
+    Optional<Section> findByCourseAndTeacher(Course course, Teacher teacher);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Section s " +
+            "SET s.teacher = null " +
+            "WHERE s.course = :course AND s.teacher = :teacher")
+    void updateSectionOfCourseAndTeacher(@Param("course") Course course, @Param("teacher") Teacher teacher);
+
 }

@@ -1,24 +1,22 @@
 package com.fifth_semester.project.services;
 
-import com.fifth_semester.project.dtos.response.TeacherDTO;
-import com.fifth_semester.project.dtos.response.TeacherPerformanceDTO;
+import com.fifth_semester.project.dtos.response.*;
+import com.fifth_semester.project.entities.Enrollment;
 import com.fifth_semester.project.entities.Section;
 import com.fifth_semester.project.entities.Teacher;
 import com.fifth_semester.project.entities.Course;
-import com.fifth_semester.project.repositories.SectionRepository;
-import com.fifth_semester.project.repositories.TeacherRepository;
-import com.fifth_semester.project.repositories.CourseRepository;
+import com.fifth_semester.project.repositories.*;
 import com.fifth_semester.project.utils.TeacherMapper;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +35,11 @@ public class TeacherService {
     private PasswordEncoder passwordEncoder;
 
     private static final Logger logger = LoggerFactory.getLogger(TeacherService.class);
+    @Autowired
+    private StudentRepository studentRepository;
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
+
     // Method to create a new teacher
     public String createTeacher(String username, String email, String department, String officeHours,
                                 String qualification, String specialization, LocalDate dateOfHire) {
@@ -194,39 +197,98 @@ public class TeacherService {
 
         Teacher teacher = teacherOpt.get();
         Course course = courseOpt.get();
+        Optional<Section> sectionOpt = sectionRepository.findByCourseAndTeacher(course,teacher);
+
+        if (sectionOpt.isEmpty()) {
+            return "Course not assigned to teacher";
+        }
+        Section  section = sectionOpt.get();
 
         // Check if the course is currently assigned to the teacher
-        if (course.getTeacher() == null || !course.getTeacher().getId().equals(teacherId)) {
-            return "The course is not assigned to this teacher";
-        }
+//        if (section.getTeacher() == null || !section.getTeacher().getId().equals(teacherId)) {
+//            return "The course is not assigned to this teacher";
+//        }
 
         // Remove the course from the teacher's list of courses
         teacher.getCourses().remove(course);
+        teacher.getSections().remove(section);
 
         // Set the course's teacher to null (unassign the teacher)
-        course.setTeacher(null);
+        sectionRepository.updateSectionOfCourseAndTeacher(course,teacher);
 
         // Save both the teacher and course entities
         teacherRepository.save(teacher);
-        courseRepository.save(course);
+//        courseRepository.save(course);
+        sectionRepository.save(section);
 
         return "Teacher removed from course successfully";
     }
 
 
     // Get teacher by ID
-    public Optional<Teacher> getTeacherById(Long teacherId) {
-        return teacherRepository.findById(teacherId);
+//    public ResponseEntity<?> getTeacherById(Long teacherId) {
+//        Teacher teacher = teacherRepository.findById(teacherId).orElseThrow(() -> new RuntimeException("Teacher not found"));
+//        InfoTeacherDTO teacherInfo = teacherRepository.getTeacherInfo(teacher);
+//        List<Section> sections = teacher.getSections();
+//        List<Course> courses = null;
+//        for(Section section : sections) {
+//            courses.add(section.getCourse());
+//        }
+//
+//    }
+    public TeacherResponseDTO getTeacherById(Long teacherId) {
+        // Fetch the teacher entity or throw an exception
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+        // Convert teacher entity to InfoTeacherDTO
+        InfoTeacherDTO teacherInfo = teacherRepository.getTeacherInfo(teacher);
+
+        // Extract sections and related courses
+        List<SectionWithCourseDTO> sectionWithCourseDTOs = new ArrayList<>();
+        for (Section section : teacher.getSections()) {
+            Course course = section.getCourse();
+            sectionWithCourseDTOs.add(
+                    new SectionWithCourseDTO(
+                            section.getId(),
+                            section.getSectionName(),
+                            course != null ? course.getCourseName() : null
+                    )
+            );
+        }
+
+        // Create the response DTO
+        TeacherResponseDTO responseDTO = new TeacherResponseDTO(teacherInfo, sectionWithCourseDTOs);
+
+        // Return as ResponseEntity
+        return responseDTO;
     }
 
     // Get all teachers
-    public List<TeacherDTO> getAllTeachers() {
+    public List<TeacherResponseDTO> getAllTeachers() {
+        List<TeacherResponseDTO> teachersInfo = new ArrayList<>();
         List<Teacher> teachers = teacherRepository.findAll();
+        for(Teacher teacher : teachers) {
+            InfoTeacherDTO teacherInfo = teacherRepository.getTeacherInfo(teacher);
 
-        // Map List<Teacher> to List<TeacherDTO>
-        return teachers.stream()
-                .map(TeacherMapper::mapToDTO)
-                .collect(Collectors.toList());
+            // Extract sections and related courses
+            List<SectionWithCourseDTO> sectionWithCourseDTOs = new ArrayList<>();
+            for (Section section : teacher.getSections()) {
+                Course course = section.getCourse();
+                sectionWithCourseDTOs.add(
+                        new SectionWithCourseDTO(
+                                section.getId(),
+                                section.getSectionName(),
+                                course != null ? course.getCourseName() : null
+                        )
+                );
+            }
+
+            // Create the response DTO
+            TeacherResponseDTO responseDTO = new TeacherResponseDTO(teacherInfo, sectionWithCourseDTOs);
+            teachersInfo.add(responseDTO);
+        }
+        return teachersInfo;
     }
 
     // Delete teacher by ID
@@ -243,11 +305,17 @@ public class TeacherService {
     public TeacherPerformanceDTO getTeacherPerformance(Long teacherId) {
         Teacher teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
-
-        List<Course> courses = courseRepository.findByTeacherId(teacherId);
-        int totalCourses = courses.size();
-        int totalEnrollments = courses.stream().mapToInt(course -> course.getEnrollments().size()).sum();
-
-        return new TeacherPerformanceDTO(teacher, totalCourses, totalEnrollments);
+        InfoTeacherDTO teacherInfo = teacherRepository.getTeacherInfo(teacher);
+        int totalCourses;
+        Set<Course> courses = new HashSet<>();
+        int totalEnrollments = 0;
+        for(Section section : teacher.getSections()) {
+            Course course = section.getCourse();
+            courses.add(course);
+            List<Enrollment> enrollments = enrollmentRepository.findBySectionId(section.getId());
+            totalEnrollments += enrollments.size();
+        }
+        totalCourses = courses.size();
+        return new TeacherPerformanceDTO(teacherInfo, totalCourses, totalEnrollments);
     }
 }

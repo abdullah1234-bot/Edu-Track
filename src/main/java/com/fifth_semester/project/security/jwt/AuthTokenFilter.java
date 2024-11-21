@@ -1,6 +1,7 @@
 package com.fifth_semester.project.security.jwt;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -31,6 +32,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
+    System.out.println("Incoming Request: " + request.getMethod() + " " + request.getRequestURI());
+    System.out.println("Headers: " + Collections.list(request.getHeaderNames()));
+    System.out.println("Content-Type: " + request.getContentType());
     try {
       String headerAuth = request.getHeader("Authorization");
       logger.debug("Authorization header: " + headerAuth);  // Add this line for debugging

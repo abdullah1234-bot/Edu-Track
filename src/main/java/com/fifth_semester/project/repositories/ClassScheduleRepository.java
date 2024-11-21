@@ -36,7 +36,7 @@ public interface ClassScheduleRepository extends JpaRepository<ClassSchedule, Lo
 
     @Modifying
     @Transactional
-    @Query(value = "TRUNCATE TABLE class_schedule", nativeQuery = true)
+    @Query(value = "TRUNCATE TABLE class_schedules", nativeQuery = true)
     void truncateMyEntityTable();
 
     List<ClassSchedule> findByDayAndCourseIdIn(String day, List<Long> courseIds);

@@ -46,4 +46,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     );
 
     Optional<Enrollment> findByStudentStudentIdAndCourseIdAndSectionSectionName(String studentID, Long courseId, String section);
+
+    List<Enrollment> findBySectionId(Long id);
 }

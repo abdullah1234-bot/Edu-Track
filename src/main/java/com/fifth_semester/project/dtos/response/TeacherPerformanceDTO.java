@@ -4,22 +4,22 @@ import com.fifth_semester.project.entities.Teacher;
 
 public class TeacherPerformanceDTO {
 
-    private Teacher teacher;
+    private InfoTeacherDTO teacher;
     private int totalCourses;
     private int totalEnrollments;
 
-    public TeacherPerformanceDTO(Teacher teacher, int totalCourses, int totalEnrollments) {
+    public TeacherPerformanceDTO(InfoTeacherDTO teacher, int totalCourses, int totalEnrollments) {
         this.teacher = teacher;
         this.totalCourses = totalCourses;
         this.totalEnrollments = totalEnrollments;
     }
 
     // Getters and setters
-    public Teacher getTeacher() {
+    public InfoTeacherDTO getTeacher() {
         return teacher;
     }
 
-    public void setTeacher(Teacher teacher) {
+    public void setTeacher(InfoTeacherDTO teacher) {
         this.teacher = teacher;
     }
 
