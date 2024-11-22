@@ -90,7 +90,7 @@ public class TimetableService {
             StringBuilder output = new StringBuilder();
             String line;
 
-            logger.info("Reading output from Python script...");
+//            logger.info("Reading output from Python script...");
 
             while ((line = reader.readLine()) != null) {
                 output.append(line);
@@ -105,7 +105,7 @@ public class TimetableService {
             }
 
             String jsonData = output.toString();
-            logger.info("Received JSON data: {}", jsonData);
+//            logger.info("Received JSON data: {}", jsonData);
 
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -135,26 +135,26 @@ public class TimetableService {
 
                 // For example, course code might be "SDA BCS-5A", where "BCS-5A" is the section
                 String[] courseParts = courseCode.split(" ");
-                logger.info("courseParts[0]: "+ courseParts[0]);
-                logger.info("courseParts[1]: "+ courseParts[1]);
+//                logger.info("courseParts[0]: "+ courseParts[0]);
+//                logger.info("courseParts[1]: "+ courseParts[1]);
                 String courseCodeShort = courseParts[0];
                 String sectionName = courseParts[1];
                 int semester = extractSemester(sectionName);
-                logger.info("semester: "+semester);
+//                logger.info("semester: "+semester);
                 String course_id = sectionName.substring(1,2) + '-' + courseCodeShort;
-                logger.info("course_id: "+course_id);
+//                logger.info("course_id: "+course_id);
                 sectionName = sectionName.substring(sectionName.length() - 1).toUpperCase();
-                logger.info("sectionName: "+sectionName);
+//                logger.info("sectionName: "+sectionName);
 
                 Optional<Course> courseOpt = courseRepository.findByCourseCode(course_id);
                 Course course;
                 if (courseOpt.isPresent()) {
                     course = courseOpt.get();
-                    logger.info("Attempted to insert duplicate course with ID: {}, Course Code: {}", course.getCourseId(), courseCodeShort);
-                    logger.info("Duplicate Course Code: {}", courseCodeShort);
-                    logger.info("Duplicate Course Name: {}", course.getCourseName());
-                    logger.info("Duplicate Course Semester: {}", course.getSemester());
-                    logger.info("Duplicate Course ID: {}", course.getCourseId());
+//                    logger.info("Attempted to insert duplicate course with ID: {}, Course Code: {}", course.getCourseId(), courseCodeShort);
+//                    logger.info("Duplicate Course Code: {}", courseCodeShort);
+//                    logger.info("Duplicate Course Name: {}", course.getCourseName());
+//                    logger.info("Duplicate Course Semester: {}", course.getSemester());
+//                    logger.info("Duplicate Course ID: {}", course.getCourseId());
                 } else {
                     Course newCourse = new Course();
                     newCourse.setCourseCode(course_id);
@@ -163,30 +163,35 @@ public class TimetableService {
                     newCourse.setCourseId(courseCodeShort);
                     newCourse.setCreditHours(3);
                     courseRepository.save(newCourse);
-                    logger.info("Created new course with code: {}", courseCodeShort);
-                    logger.info("New Course Code: {}", courseCodeShort);
-                    logger.info("New Course Name: {}", courseCodeShort);
-                    logger.info("New Course Semester: {}", semester);
-                    logger.info("New Course ID: {}", course_id);
+//                    logger.info("Created new course with code: {}", courseCodeShort);
+//                    logger.info("New Course Code: {}", courseCodeShort);
+//                    logger.info("New Course Name: {}", courseCodeShort);
+//                    logger.info("New Course Semester: {}", semester);
+//                    logger.info("New Course ID: {}", course_id);
                     course = newCourse;
                 }
 
 
                 Optional<Section> sectionOpt = sectionRepository.findByCourseAndSectionName(course, sectionName);
-
-                Section sectionObj;
+                Teacher teacher;
+                        Section sectionObj;
                 if (sectionOpt.isPresent()) {
                     sectionObj = sectionOpt.get();
-                    logger.info("Found existing section for course {} with section name: {}", course.getCourseCode(), sectionName);
+                    teacher = handleTeacherCreation(instructorName,courseCode,sectionName);
+                    sectionObj.setTeacher(teacher);
+//                    logger.info("Found existing section for course {} with section name: {}", course.getCourseCode(), sectionName);
                 } else {
-                    logger.info("Creating new section for course {} with section name: {}", course.getCourseCode(), sectionName);
+//                    logger.info("Creating new section for course {} with section name: {}", course.getCourseCode(), sectionName);
                     sectionObj = new Section();
                     sectionObj.setCourse(course);
                     sectionObj.setSectionName(sectionName);
                     sectionRepository.save(sectionObj);
+                    teacher = handleTeacherCreation(instructorName,courseCode,sectionName);
+                    sectionObj.setTeacher(teacher);
+                    sectionRepository.save(sectionObj);
                     logger.info("Created new section for course {} with section name: {}", course.getCourseCode(), sectionName);
                 }
-                Teacher teacher = handleTeacherCreation(instructorName,courseCode,sectionName);
+                logger.info("Teacher assigned to section {}: {}", sectionObj.getSectionName(), sectionObj.getTeacher().getUsername());
                 ClassSchedule classSchedule = new ClassSchedule(course,sectionObj,teacher, startTime, endTime, room,  semester,weekday);
                 try {
                     saveClassScheduleIfNotExists(classSchedule);
